@@ -26,6 +26,12 @@ Built with **async/await patterns** for high performance and non-blocking I/O.
 - Content length limiting for safe response sizes
 - Request input validation using Pydantic
 
+🔌 **OpenCode SSE Compatibility**
+- Server-Sent Events (SSE) streaming for MCP root endpoint
+- SSE-based tool execution via `/mcp/run`
+- Fully compatible with OpenCode MCP client
+- Event format: `event: {type}` + `data: {json}`
+
 🚀 **Production Ready**
 - Async FastAPI framework for high concurrency
 - Health check endpoints (`/health`, `/`)
@@ -92,6 +98,21 @@ Returns:
 
 ## API Endpoints
 
+### MCP Root (SSE)
+
+```http
+GET /mcp
+Accept: text/event-stream
+```
+
+Returns a Server-Sent Events (SSE) stream for OpenCode MCP compatibility.
+
+**Response:**
+```
+event: ready
+data: {"status": "ok", "message": "MCP Web Search Server ready"}
+```
+
 ### List Available Tools
 
 ```http
@@ -100,7 +121,42 @@ GET /mcp/tools
 
 Returns a list of available MCP tools with their descriptions and input schemas.
 
-### Web Search
+### Execute Tool (SSE)
+
+```http
+POST /mcp/run
+Content-Type: application/json
+Accept: text/event-stream
+
+{
+  "tool": "web_search",
+  "input": {
+    "query": "python async programming",
+    "num_results": 5
+  }
+}
+```
+
+**Parameters:**
+- `tool` (string, required): Tool name (`web_search` or `fetch_page`)
+- `input` (object, required): Tool input parameters
+
+**Response (SSE stream):**
+```
+event: start
+data: {"tool": "web_search", "input": {...}}
+
+event: data
+data: {"status": "searching", "query": "python async programming"}
+
+event: data
+data: {"status": "complete", "results": [...]}
+
+event: end
+data: {"status": "done", "tool": "web_search"}
+```
+
+### Web Search (Legacy REST)
 
 ```http
 POST /mcp/tools/web_search
@@ -130,7 +186,16 @@ Content-Type: application/json
 }
 ```
 
-### Fetch Webpage
+### Fetch Webpage (Legacy REST)
+
+```http
+POST /mcp/tools/fetch_page
+Content-Type: application/json
+
+{
+  "url": "https://example.com/article"
+}
+```
 
 ```http
 POST /mcp/tools/fetch_page
