@@ -4,6 +4,7 @@ A fast, async [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) s
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangolo.com/)
+[![CI Tests](https://github.com/yourusername/mcp-web-search/actions/workflows/test.yml/badge.svg)](https://github.com/yourusername/mcp-web-search/actions)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Overview
@@ -304,7 +305,28 @@ pytest tests/test_services.py
 
 # Specific test function with verbose output
 pytest tests/test_services.py::test_search_service -v
+
+# Run with coverage report
+pytest --cov=app --cov-report=html
 ```
+
+### Automated Testing (CI/CD)
+
+This project uses **GitHub Actions** for continuous integration:
+
+**Test Workflow** (`test.yml`):
+- Runs on every push to `main` and `develop` branches
+- Runs on all pull requests
+- Tests Python 3.11 and 3.12
+- Performs linting, formatting checks, type checking, and pytest suite
+- Uploads coverage reports to Codecov
+
+**Deploy Workflow** (`deploy.yml`):
+- Runs on every push to `main` branch
+- Automatically deploys to Render using API keys
+- Requires GitHub Secrets configuration (see [.github/workflows/README.md](.github/workflows/README.md))
+
+Check workflow status in the **Actions** tab of your GitHub repository.
 
 ### Code Style Guidelines
 
@@ -338,7 +360,17 @@ This project includes `render.yaml` for deployment on [Render](https://render.co
 2. Connect your GitHub repository to Render
 3. Create a new Web Service
 4. Select the repository and set the build command to `pip install -r requirements.txt`
-5. Deploy!
+
+**Automated Deployment:**
+
+Enable automatic deployment via GitHub Actions:
+
+1. Set up GitHub Secrets for Render API access (see [.github/workflows/README.md](.github/workflows/README.md))
+2. Push to the `main` branch
+3. The `deploy.yml` workflow will automatically trigger a Render deployment
+4. Monitor deployment status in GitHub **Actions** tab and Render dashboard
+
+See [GitHub Workflows Setup](https://github.com/yourusername/mcp-web-search/blob/main/.github/workflows/README.md) for detailed configuration.
 
 ### Production Checklist
 

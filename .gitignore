@@ -209,3 +209,4 @@ __marimo__/
 # Project-specific documentation (local development guides)
 AGENTS.md
 DEVELOPER_GUIDE.md
+GITHUB_ACTIONS_SETUP.md
