@@ -28,6 +28,7 @@ app.add_middleware(
 
 app.include_router(mcp.mcp_router, prefix="/mcp")
 app.include_router(mcp.router, prefix="/mcp")
+app.include_router(mcp.exec_router, prefix="/mcp")
 
 
 @app.get("/")
