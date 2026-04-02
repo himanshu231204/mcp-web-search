@@ -433,13 +433,6 @@ This project is licensed under the MIT License – see the [LICENSE](LICENSE) fi
 - HTML parsing with [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)
 - [Model Context Protocol](https://modelcontextprotocol.io/) for standardized AI tool integration
 
-## Support
-
-For issues, questions, or suggestions:
-
-1. Check [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) for architecture documentation
-2. Review [troubleshooting section](#troubleshooting) above
-3. Open an [issue](https://github.com/yourusername/mcp-web-search/issues) on GitHub
 
 ---
 
