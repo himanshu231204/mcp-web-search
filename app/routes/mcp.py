@@ -18,8 +18,20 @@ mcp_router = APIRouter(tags=["MCP Root"])
 router = APIRouter(prefix="/tools", tags=["MCP Tools"])
 
 
-@mcp_router.get("/")
+@mcp_router.get("")
 async def mcp_root():
+    """MCP root endpoint - handles both /mcp and /mcp/"""
+    return {
+        "name": "MCP Web Search Server",
+        "version": "1.0.0",
+        "protocol": "mcp",
+        "status": "ok",
+    }
+
+
+@mcp_router.get("/")
+async def mcp_root_slash():
+    """MCP root endpoint with trailing slash"""
     return {
         "name": "MCP Web Search Server",
         "version": "1.0.0",
