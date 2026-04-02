@@ -15,16 +15,14 @@ class SearchService:
     async def search(self, query: str, num_results: int = 5) -> List[dict]:
         try:
             results = await asyncio.to_thread(
-                self.ddgs.text,
-                keywords=query,
-                max_results=num_results
+                self.ddgs.text, keywords=query, max_results=num_results
             )
-            
+
             return [
                 {
                     "title": r.get("title", ""),
                     "url": r.get("href", ""),
-                    "snippet": r.get("body", "")
+                    "snippet": r.get("body", ""),
                 }
                 for r in results
             ]

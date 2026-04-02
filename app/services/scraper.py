@@ -17,27 +17,23 @@ class ScraperService:
             verify=False,
             headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            }
+            },
         )
 
     async def fetch_page(self, url: str) -> dict:
         try:
             response = await self.client.get(url)
             response.raise_for_status()
-            
+
             soup = BeautifulSoup(response.text, "html.parser")
-            
+
             title = self._extract_title(soup)
             content = self._extract_content(soup)
-            
+
             if len(content) > self.config.MAX_CONTENT_LENGTH:
                 content = content[: self.config.MAX_CONTENT_LENGTH] + "..."
-            
-            return {
-                "title": title,
-                "content": content,
-                "url": url
-            }
+
+            return {"title": title, "content": content, "url": url}
         except httpx.TimeoutException:
             logger.warning(f"Timeout fetching {url}")
             return {"title": None, "content": "Request timed out", "url": url}
@@ -59,7 +55,7 @@ class ScraperService:
     def _extract_content(self, soup: BeautifulSoup) -> str:
         for script in soup(["script", "style"]):
             script.decompose()
-        
+
         text = soup.get_text(separator=" ", strip=True)
         text = re.sub(r"\s+", " ", text)
         return text.strip()

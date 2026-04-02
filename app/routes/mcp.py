@@ -7,7 +7,7 @@ from app.schemas.models import (
     FetchPageResponse,
     MCPToolsResponse,
     MCPTool,
-    SearchResult
+    SearchResult,
 )
 from app.services.search import search_service
 from app.services.scraper import scraper_service
@@ -28,10 +28,14 @@ async def list_tools():
                     "type": "object",
                     "properties": {
                         "query": {"type": "string", "description": "Search query"},
-                        "num_results": {"type": "integer", "description": "Number of results (1-20)", "default": 5}
+                        "num_results": {
+                            "type": "integer",
+                            "description": "Number of results (1-20)",
+                            "default": 5,
+                        },
                     },
-                    "required": ["query"]
-                }
+                    "required": ["query"],
+                },
             ),
             MCPTool(
                 name="fetch_page",
@@ -41,9 +45,9 @@ async def list_tools():
                     "properties": {
                         "url": {"type": "string", "description": "URL to fetch"}
                     },
-                    "required": ["url"]
-                }
-            )
+                    "required": ["url"],
+                },
+            ),
         ]
     )
 
@@ -52,12 +56,9 @@ async def list_tools():
 async def web_search(request: WebSearchRequest):
     try:
         results = await search_service.search(
-            query=request.query,
-            num_results=request.num_results
+            query=request.query, num_results=request.num_results
         )
-        return WebSearchResponse(
-            results=[SearchResult(**r) for r in results]
-        )
+        return WebSearchResponse(results=[SearchResult(**r) for r in results])
     except Exception as e:
         logger.error(f"Web search error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
