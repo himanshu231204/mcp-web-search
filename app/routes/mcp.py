@@ -14,7 +14,18 @@ from app.services.scraper import scraper_service
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/mcp/tools", tags=["MCP Tools"])
+mcp_router = APIRouter(tags=["MCP Root"])
+router = APIRouter(prefix="/tools", tags=["MCP Tools"])
+
+
+@mcp_router.get("/")
+async def mcp_root():
+    return {
+        "name": "MCP Web Search Server",
+        "version": "1.0.0",
+        "protocol": "mcp",
+        "status": "ok",
+    }
 
 
 @router.get("", response_model=MCPToolsResponse)

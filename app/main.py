@@ -26,7 +26,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(mcp.router)
+app.include_router(mcp.mcp_router, prefix="/mcp")
+app.include_router(mcp.router, prefix="/mcp")
 
 
 @app.get("/")
