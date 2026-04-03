@@ -31,13 +31,14 @@ def format_sse(event: str, data: Any) -> str:
 
 
 async def sse_generator():
-    """Generate SSE stream for MCP root connection."""
+    """Generate SSE stream for MCP root connection - long-lived for OpenCode."""
+    # Initial handshake
     yield format_sse("ready", {"status": "ok", "message": "MCP Web Search Server ready"})
     
-    # Keep connection alive with periodic messages
+    # Keep connection alive with periodic ping events
     try:
         while True:
-            await asyncio.sleep(30)
+            await asyncio.sleep(10)
             yield format_sse("ping", {"status": "alive"})
     except asyncio.CancelledError:
         yield format_sse("close", {"status": "disconnected"})
@@ -46,13 +47,29 @@ async def sse_generator():
 @mcp_router.get("")
 async def mcp_root():
     """MCP root endpoint - SSE stream for OpenCode compatibility."""
-    return StreamingResponse(sse_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        sse_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        },
+    )
 
 
 @mcp_router.get("/")
 async def mcp_root_slash():
     """MCP root endpoint with trailing slash - SSE stream."""
-    return StreamingResponse(sse_generator(), media_type="text/event-stream")
+    return StreamingResponse(
+        sse_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 async def execute_tool_stream(tool_name: str, tool_input: dict) -> AsyncGenerator[str, None]:
