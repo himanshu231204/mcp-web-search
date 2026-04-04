@@ -1,6 +1,11 @@
 # MCP Web Search Server
 
-A production-ready **Model Context Protocol (MCP)** server providing web search and webpage content extraction capabilities. Built with FastAPI and Server-Sent Events (SSE) for seamless OpenCode integration.
+A Model Context Protocol (MCP) server that provides two tools:
+
+- Web search via DuckDuckGo
+- Web page content extraction via HTTP fetch + HTML parsing
+
+The server is implemented with FastAPI and supports MCP over Streamable HTTP (`POST /mcp`) with a legacy SSE compatibility stream (`GET /mcp`).
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangolo.com/)
@@ -8,17 +13,17 @@ A production-ready **Model Context Protocol (MCP)** server providing web search 
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
-### Remote Server (Recommended)
+### Remote Server
 
-The easiest way to use the MCP Web Search Server:
+Default deployment endpoint:
 
 ```
 https://mcp-web-search-nwgd.onrender.com/mcp
 ```
 
-#### OpenCode Configuration
+### OpenCode Configuration
 
 Add to your OpenCode `settings.json`:
 
@@ -39,9 +44,34 @@ opencode mcp list
 # Output: web-search ✓
 ```
 
+### OpenCode Timeout Troubleshooting
+
+If OpenCode reports a 30000ms timeout for this server:
+
+1. Confirm the MCP URL is exactly `https://mcp-web-search-nwgd.onrender.com/mcp`.
+2. Verify basic health: `curl https://mcp-web-search-nwgd.onrender.com/health`.
+3. Verify MCP initialize handshake:
+
+```bash
+curl -X POST https://mcp-web-search-nwgd.onrender.com/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
+```
+
+Expected handshake sequence:
+
+1. Client sends `initialize` to `POST /mcp`.
+2. Server returns JSON-RPC `result` with `protocolVersion`, `capabilities`, and `serverInfo`.
+3. Client sends `notifications/initialized`.
+4. Client calls `tools/list` and then `tools/call`.
+
+If `initialize` fails or hangs, redeploy and verify environment defaults:
+`SEARCH_TIMEOUT=10`, `FETCH_TIMEOUT=10`, `MCP_REQUEST_TIMEOUT=25`, `SSE_HEARTBEAT_INTERVAL=5`.
+
 ---
 
-## 🔌 Available Tools
+## Available Tools
 
 | Tool | Description | Parameters |
 |------|-------------|------------|
@@ -50,7 +80,7 @@ opencode mcp list
 
 ---
 
-## 📡 API Endpoints
+## API Endpoints
 
 ### MCP Endpoint (Streamable HTTP)
 
@@ -101,6 +131,8 @@ data: /mcp
 event: message
 data: {"type": "connection_ack", "message": "MCP server ready"}
 ```
+
+Note: MCP clients should prefer `POST /mcp` for the primary protocol flow. `GET /mcp` is provided for compatibility with older fallback behavior.
 
 ### List Tools
 
@@ -195,6 +227,24 @@ Use `tools/call` via `POST /mcp`:
 }
 ```
 
+Typical result format for `tools/call`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "result": {
+    "content": [
+      {
+        "type": "text",
+        "text": "{\"results\":[...]}"
+      }
+    ],
+    "isError": false
+  }
+}
+```
+
 ### Legacy REST Endpoints
 
 For direct HTTP calls without SSE:
@@ -220,7 +270,7 @@ GET /health
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -247,7 +297,7 @@ GET /health
 
 ---
 
-## 🛠️ Local Development
+## Local Development
 
 ### Prerequisites
 
@@ -264,14 +314,17 @@ cd mcp-web-search
 # Install dependencies
 pip install -r requirements.txt
 
-# (Optional) Create environment file
+# (Optional) Create environment file (PowerShell)
+Copy-Item .env.example .env
+
+# (Optional) Create environment file (bash)
 cp .env.example .env
 ```
 
 ### Running the Server
 
 ```bash
-# Development (with auto-reload)
+# Development
 python -m app.main
 
 # Production
@@ -280,19 +333,25 @@ uvicorn app.main:app --host 0.0.0.0 --port 10000
 
 The server will start on `http://localhost:10000`
 
-### Testing SSE Endpoints
+### Manual Endpoint Checks
 
 ```bash
-# Test MCP root SSE
+# Test MCP SSE compatibility stream
 curl -N http://localhost:10000/mcp
 
-# Test tool list
+# Test legacy tool list endpoint
 curl http://localhost:10000/mcp/tools | jq
+
+# Test MCP initialize (primary protocol endpoint)
+curl -X POST http://localhost:10000/mcp \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json, text/event-stream" \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}'
 ```
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 Environment variables (`.env`):
 
@@ -312,7 +371,7 @@ Environment variables (`.env`):
 
 ---
 
-## 📦 Dependencies
+## Dependencies
 
 | Package | Purpose |
 |---------|---------|
@@ -325,7 +384,7 @@ Environment variables (`.env`):
 
 ---
 
-## 🔧 Code Quality
+## Code Quality
 
 ```bash
 # Linting
@@ -343,7 +402,7 @@ mypy app/
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ```bash
 # Build
@@ -355,13 +414,13 @@ docker run -p 10000:10000 mcp-web-search
 
 ---
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - [FastAPI](https://fastapi.tiangolo.com/) - Modern Python web framework
 - [DuckDuckGo](https://duckduckgo.com/) - Search API
@@ -369,5 +428,15 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ---
 
-**Last Updated**: 2026-04-04  
-**Status**: Production Ready ✅
+## Connect
+
+Social handle: `himanshu231204`
+
+- GitHub: [@himanshu231204](https://github.com/himanshu231204)
+- LinkedIn: [himanshu231204](https://www.linkedin.com/in/himanshu231204)
+- Twitter (X): [@himanshu231204](https://x.com/himanshu231204)
+
+---
+
+**Last Updated**: 2026-04-04
+**Status**: Production
