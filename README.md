@@ -52,21 +52,54 @@ opencode mcp list
 
 ## 📡 API Endpoints
 
-### MCP Root (SSE)
+### MCP Endpoint (Streamable HTTP)
+
+```
+POST /mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+```
+
+Primary MCP endpoint using JSON-RPC. Example initialize request:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {}
+}
+```
+
+Example response:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "protocolVersion": "2025-03-26",
+    "capabilities": {"tools": {}},
+    "serverInfo": {"name": "MCP Web Search Server", "version": "1.0.0"}
+  }
+}
+```
+
+### MCP SSE Compatibility Stream
 
 ```
 GET /mcp
 Accept: text/event-stream
 ```
 
-Long-lived Server-Sent Events stream for MCP protocol. Returns:
+Legacy HTTP+SSE compatibility stream. Returns:
 
 ```
-event: ready
-data: {"status": "ok", "message": "MCP Web Search Server ready"}
+event: endpoint
+data: /mcp
 
-event: ping
-data: {"status": "alive"}
+event: message
+data: {"type": "connection_ack", "message": "MCP server ready"}
 ```
 
 ### List Tools
@@ -141,6 +174,25 @@ data: {"status": "complete", "results": [...]}
 
 event: end
 data: {"status": "done", "tool": "web_search"}
+```
+
+### Execute Tool (MCP JSON-RPC)
+
+Use `tools/call` via `POST /mcp`:
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 10,
+  "method": "tools/call",
+  "params": {
+    "name": "web_search",
+    "arguments": {
+      "query": "AI news",
+      "num_results": 3
+    }
+  }
+}
 ```
 
 ### Legacy REST Endpoints
@@ -252,7 +304,10 @@ Environment variables (`.env`):
 | `PORT` | 10000 | Server port |
 | `DEFAULT_NUM_RESULTS` | 5 | Default search results |
 | `MAX_NUM_RESULTS` | 20 | Maximum results per request |
+| `SEARCH_TIMEOUT` | 10 | Search timeout (seconds) |
 | `FETCH_TIMEOUT` | 10 | Page fetch timeout (seconds) |
+| `MCP_REQUEST_TIMEOUT` | 25 | Max timeout for one MCP tool call (seconds) |
+| `SSE_HEARTBEAT_INTERVAL` | 5 | Heartbeat interval for SSE stream (seconds) |
 | `MAX_CONTENT_LENGTH` | 5000 | Max content characters |
 
 ---

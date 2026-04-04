@@ -1,5 +1,7 @@
 """Tests for MCP routes."""
 
+import asyncio
+import json
 import pytest
 from fastapi.testclient import TestClient
 from app.routes import mcp
@@ -147,6 +149,43 @@ def test_mcp_tools_call_jsonrpc(client: TestClient, monkeypatch: pytest.MonkeyPa
     assert data["result"]["content"][0]["type"] == "text"
 
 
+def test_mcp_tools_call_web_search_with_mocked_service(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+):
+    """POST /mcp tools/call should pass through to search service with mocked dependency."""
+
+    async def fake_search(query: str, num_results: int = 5):
+        return [
+            {
+                "title": "Mock title",
+                "url": "https://example.com/mock",
+                "snippet": f"query={query}, n={num_results}",
+            }
+        ]
+
+    monkeypatch.setattr(mcp.search_service, "search", fake_search)
+
+    response = client.post(
+        "/mcp",
+        json={
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "tools/call",
+            "params": {
+                "name": "web_search",
+                "arguments": {"query": "mcp", "num_results": 2},
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+    assert data["id"] == 3
+    payload = json.loads(data["result"]["content"][0]["text"])
+    assert payload["results"][0]["url"] == "https://example.com/mock"
+    assert payload["results"][0]["snippet"] == "query=mcp, n=2"
+
+
 def test_mcp_method_not_found(client: TestClient):
     """POST /mcp should return JSON-RPC error for unknown method."""
     response = client.post(
@@ -166,10 +205,15 @@ def test_mcp_method_not_found(client: TestClient):
     assert data["error"]["code"] == -32601
 
 
-def test_mcp_sse_first_event_is_endpoint(client: TestClient):
-    """GET /mcp should emit legacy endpoint event first for fallback clients."""
-    with client.stream("GET", "/mcp") as response:
-        assert response.status_code == 200
-        first_chunk = next(response.iter_text())
-        assert "event: endpoint" in first_chunk
-        assert "data: /mcp" in first_chunk
+def test_sse_generator_first_event_is_endpoint():
+    """SSE generator should emit legacy endpoint event first for fallback clients."""
+
+    async def _first_event() -> str:
+        gen = mcp.sse_generator()
+        first = await anext(gen)
+        await gen.aclose()
+        return first
+
+    first_chunk = asyncio.run(_first_event())
+    assert "event: endpoint" in first_chunk
+    assert "data: /mcp" in first_chunk
