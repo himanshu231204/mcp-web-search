@@ -65,6 +65,18 @@ def _tool_definitions() -> list[MCPTool]:
     ]
 
 
+def _mcp_tool_definitions() -> list[dict[str, Any]]:
+    """Return MCP-compliant tool definitions for JSON-RPC tools/list."""
+    return [
+        {
+            "name": tool.name,
+            "description": tool.description,
+            "inputSchema": tool.input_schema,
+        }
+        for tool in _tool_definitions()
+    ]
+
+
 async def _execute_tool(tool_name: str, tool_input: dict[str, Any]) -> dict[str, Any]:
     if tool_name == "web_search":
         results = await asyncio.wait_for(
@@ -138,7 +150,7 @@ async def mcp_post(request: JSONRPCRequest):
     if method == "tools/list":
         return _jsonrpc_result(
             request.id,
-            {"tools": [tool.model_dump() for tool in _tool_definitions()]},
+            {"tools": _mcp_tool_definitions()},
         )
 
     if method == "tools/call":

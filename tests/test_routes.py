@@ -116,6 +116,7 @@ def test_mcp_tools_list_jsonrpc(client: TestClient):
     tool_names = [tool["name"] for tool in data["result"]["tools"]]
     assert "web_search" in tool_names
     assert "fetch_page" in tool_names
+    assert "inputSchema" in data["result"]["tools"][0]
 
 
 def test_mcp_tools_call_jsonrpc(client: TestClient, monkeypatch: pytest.MonkeyPatch):
