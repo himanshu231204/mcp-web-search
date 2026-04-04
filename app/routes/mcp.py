@@ -33,8 +33,10 @@ def format_sse(event: str, data: Any) -> str:
 async def sse_generator():
     """Generate SSE stream for MCP root connection - long-lived for OpenCode."""
     # Initial handshake
-    yield format_sse("ready", {"status": "ok", "message": "MCP Web Search Server ready"})
-    
+    yield format_sse(
+        "ready", {"status": "ok", "message": "MCP Web Search Server ready"}
+    )
+
     # Keep connection alive with periodic ping events
     try:
         while True:
@@ -72,40 +74,42 @@ async def mcp_root_slash():
     )
 
 
-async def execute_tool_stream(tool_name: str, tool_input: dict) -> AsyncGenerator[str, None]:
+async def execute_tool_stream(
+    tool_name: str, tool_input: dict
+) -> AsyncGenerator[str, None]:
     """Execute a tool and yield SSE events."""
     # Start event
     yield format_sse("start", {"tool": tool_name, "input": tool_input})
-    
+
     try:
         if tool_name == "web_search":
             query = tool_input.get("query", "")
             num_results = tool_input.get("num_results", 5)
-            
+
             yield format_sse("data", {"status": "searching", "query": query})
-            
+
             results = await search_service.search(query=query, num_results=num_results)
-            
+
             yield format_sse("data", {"status": "complete", "results": results})
-            
+
         elif tool_name == "fetch_page":
             url = tool_input.get("url", "")
-            
+
             yield format_sse("data", {"status": "fetching", "url": url})
-            
+
             result = await scraper_service.fetch_page(url=url)
-            
+
             yield format_sse("data", {"status": "complete", "result": result})
-            
+
         else:
             yield format_sse("error", {"message": f"Unknown tool: {tool_name}"})
             return
-            
+
     except Exception as e:
         logger.error(f"Tool execution error: {e}")
         yield format_sse("error", {"message": str(e)})
         return
-    
+
     # End event
     yield format_sse("end", {"status": "done", "tool": tool_name})
 
@@ -114,8 +118,7 @@ async def execute_tool_stream(tool_name: str, tool_input: dict) -> AsyncGenerato
 async def run_tool(request: MCPToolExecutionRequest):
     """Execute a tool via SSE stream."""
     return StreamingResponse(
-        execute_tool_stream(request.tool, request.input),
-        media_type="text/event-stream"
+        execute_tool_stream(request.tool, request.input), media_type="text/event-stream"
     )
 
 
