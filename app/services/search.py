@@ -14,8 +14,11 @@ class SearchService:
 
     async def search(self, query: str, num_results: int = 5) -> List[dict]:
         try:
-            results = await asyncio.to_thread(
-                self.ddgs.text, keywords=query, max_results=num_results
+            results = await asyncio.wait_for(
+                asyncio.to_thread(
+                    self.ddgs.text, keywords=query, max_results=num_results
+                ),
+                timeout=self.config.SEARCH_TIMEOUT,
             )
 
             return [
@@ -26,6 +29,9 @@ class SearchService:
                 }
                 for r in results
             ]
+        except asyncio.TimeoutError:
+            logger.warning("Search timeout for query: %s", query)
+            return []
         except Exception as e:
             logger.error(f"Search error: {e}")
             return []

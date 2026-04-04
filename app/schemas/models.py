@@ -40,3 +40,17 @@ class MCPToolsResponse(BaseModel):
 class MCPToolExecutionRequest(BaseModel):
     tool: str = Field(..., description="Tool name to execute")
     input: Dict[str, Any] = Field(..., description="Tool input parameters")
+
+
+class JSONRPCRequest(BaseModel):
+    jsonrpc: str = Field(default="2.0")
+    method: str = Field(..., min_length=1)
+    params: Dict[str, Any] = Field(default_factory=dict)
+    id: Optional[Any] = None
+
+
+class JSONRPCResponse(BaseModel):
+    jsonrpc: str = "2.0"
+    id: Optional[Any] = None
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[Dict[str, Any]] = None
