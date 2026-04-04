@@ -10,6 +10,17 @@ The server is implemented with FastAPI and supports MCP over Streamable HTTP (`P
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![MCP Handbook](https://img.shields.io/badge/Guide-Complete_MCP_Handbook-brightgreen)](HOW_TO_BUILD_THE_MCP_SERVER.md)
+
+---
+
+## Documentation Map
+
+- [README.md](README.md): Quick start, endpoint reference, deployment basics.
+- [HOW_TO_BUILD_THE_MCP_SERVER.md](HOW_TO_BUILD_THE_MCP_SERVER.md): Beginner-to-advanced MCP handbook (architecture, protocol, reliability, security, CI/CD, operations).
+- [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md): Internal development patterns and extension guidelines.
+
+If you are new to MCP, start with [HOW_TO_BUILD_THE_MCP_SERVER.md](HOW_TO_BUILD_THE_MCP_SERVER.md) and use this README as a fast reference.
 
 ---
 
@@ -82,6 +93,13 @@ If `initialize` fails or hangs, redeploy and verify environment defaults:
 
 ## API Endpoints
 
+This project exposes two API styles:
+
+1. MCP JSON-RPC (primary): `POST /mcp`
+2. Legacy/compatibility routes: `GET /mcp`, `/mcp/tools/*`, `/mcp/run`
+
+For AI clients, always prefer the MCP JSON-RPC path.
+
 ### MCP Endpoint (Streamable HTTP)
 
 ```
@@ -141,6 +159,8 @@ GET /mcp/tools
 ```
 
 Returns available tools with input schemas:
+
+Note: this endpoint is a legacy compatibility route and returns `input_schema` (snake_case). MCP JSON-RPC `tools/list` responses use `inputSchema` (camelCase).
 
 ```json
 {
@@ -299,6 +319,8 @@ GET /health
 
 ## Local Development
 
+For a full build-from-zero walkthrough, debugging playbooks, and advanced extension patterns, see [HOW_TO_BUILD_THE_MCP_SERVER.md](HOW_TO_BUILD_THE_MCP_SERVER.md).
+
 ### Prerequisites
 
 - **Python 3.11 or later**
@@ -439,4 +461,4 @@ Social handle: `himanshu231204`
 ---
 
 **Last Updated**: 2026-04-04
-**Status**: Production
+**Status**: Production (MCP Connected)
