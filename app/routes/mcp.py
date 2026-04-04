@@ -116,7 +116,9 @@ async def sse_generator():
     """Generate SSE stream for MCP root connection."""
     # Legacy HTTP+SSE compatibility: endpoint must be first event.
     yield format_sse("endpoint", "/mcp")
-    yield format_sse("message", {"type": "connection_ack", "message": "MCP server ready"})
+    yield format_sse(
+        "message", {"type": "connection_ack", "message": "MCP server ready"}
+    )
 
     try:
         while True:
@@ -158,7 +160,9 @@ async def mcp_post(request: JSONRPCRequest):
         tool_input = request.params.get("arguments", {})
 
         if not tool_name:
-            return _jsonrpc_error(request.id, -32602, "Missing required parameter: name")
+            return _jsonrpc_error(
+                request.id, -32602, "Missing required parameter: name"
+            )
 
         try:
             tool_result = await _execute_tool(str(tool_name), dict(tool_input))
@@ -225,16 +229,28 @@ async def execute_tool_stream(
 
     try:
         if tool_name == "web_search":
-            yield format_sse("data", {"status": "searching", "query": tool_input.get("query", "")})
+            yield format_sse(
+                "data",
+                {"status": "searching", "query": tool_input.get("query", "")},
+            )
         elif tool_name == "fetch_page":
-            yield format_sse("data", {"status": "fetching", "url": tool_input.get("url", "")})
+            yield format_sse(
+                "data",
+                {"status": "fetching", "url": tool_input.get("url", "")},
+            )
 
         result = await _execute_tool(tool_name=tool_name, tool_input=tool_input)
 
         if tool_name == "web_search":
-            yield format_sse("data", {"status": "complete", "results": result["results"]})
+            yield format_sse(
+                "data",
+                {"status": "complete", "results": result["results"]},
+            )
         else:
-            yield format_sse("data", {"status": "complete", "result": result})
+            yield format_sse(
+                "data",
+                {"status": "complete", "result": result},
+            )
 
     except asyncio.TimeoutError:
         yield format_sse("error", {"message": "Tool execution timed out"})
@@ -255,7 +271,8 @@ async def execute_tool_stream(
 async def run_tool(request: MCPToolExecutionRequest):
     """Execute a tool via SSE stream."""
     return StreamingResponse(
-        execute_tool_stream(request.tool, request.input), media_type="text/event-stream"
+        execute_tool_stream(request.tool, request.input),
+        media_type="text/event-stream",
     )
 
 
