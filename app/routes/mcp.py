@@ -31,19 +31,22 @@ def format_sse(event: str, data: Any) -> str:
 
 
 async def sse_generator():
-    """Generate SSE stream for MCP root connection - long-lived for OpenCode."""
-    # Initial handshake
+    """Generate SSE stream for MCP root connection - MCP protocol compliant."""
+    # Initial MCP handshake
     yield format_sse(
-        "ready", {"status": "ok", "message": "MCP Web Search Server ready"}
+        "message",
+        {"type": "connection_ack", "message": "MCP Web Search Server ready"},
     )
 
-    # Keep connection alive with periodic ping events
+    # Keep connection alive with heartbeat events
     try:
         while True:
             await asyncio.sleep(10)
-            yield format_sse("ping", {"status": "alive"})
+            yield format_sse("message", {"type": "heartbeat", "status": "alive"})
     except asyncio.CancelledError:
-        yield format_sse("close", {"status": "disconnected"})
+        yield format_sse(
+            "message", {"type": "connection_closed", "status": "disconnected"}
+        )
 
 
 @mcp_router.get("")
