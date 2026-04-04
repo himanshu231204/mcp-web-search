@@ -11,6 +11,8 @@ The server is implemented with FastAPI and supports MCP over Streamable HTTP (`P
 [![FastAPI](https://img.shields.io/badge/FastAPI-Latest-green.svg)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![MCP Handbook](https://img.shields.io/badge/Guide-Complete_MCP_Handbook-brightgreen)](HOW_TO_BUILD_THE_MCP_SERVER.md)
+[![Docs Index](https://img.shields.io/badge/Docs-Technical_Index-informational)](docs/TECHNICAL_DOCUMENTATION_INDEX.md)
+[![Architecture](https://img.shields.io/badge/Architecture-System_Design-6f42c1)](ARCHITECTURE.md)
 
 ---
 
@@ -19,6 +21,14 @@ The server is implemented with FastAPI and supports MCP over Streamable HTTP (`P
 - [README.md](README.md): Quick start, endpoint reference, deployment basics.
 - [HOW_TO_BUILD_THE_MCP_SERVER.md](HOW_TO_BUILD_THE_MCP_SERVER.md): Beginner-to-advanced MCP handbook (architecture, protocol, reliability, security, CI/CD, operations).
 - [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md): Internal development patterns and extension guidelines.
+- [ARCHITECTURE.md](ARCHITECTURE.md): System design, component boundaries, and request-flow architecture.
+- [docs/TECHNICAL_DOCUMENTATION_INDEX.md](docs/TECHNICAL_DOCUMENTATION_INDEX.md): Complete technical docs index.
+- [docs/API_REFERENCE.md](docs/API_REFERENCE.md): Detailed MCP, SSE, and legacy API contracts.
+- [docs/DEPLOYMENT_RUNBOOK.md](docs/DEPLOYMENT_RUNBOOK.md): Local, Docker, and Render deployment runbook.
+- [docs/OPERATIONS_RUNBOOK.md](docs/OPERATIONS_RUNBOOK.md): Incident response and production diagnostics.
+- [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md): Test strategy and CI-parity checks.
+- [docs/SECURITY_MODEL.md](docs/SECURITY_MODEL.md): Threat model and hardening plan.
+- [docs/MAINTENANCE_CHECKLIST.md](docs/MAINTENANCE_CHECKLIST.md): Release and upkeep checklists.
 
 If you are new to MCP, start with [HOW_TO_BUILD_THE_MCP_SERVER.md](HOW_TO_BUILD_THE_MCP_SERVER.md) and use this README as a fast reference.
 
