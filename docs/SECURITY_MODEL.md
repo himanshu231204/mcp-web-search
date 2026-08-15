@@ -22,20 +22,30 @@ This document defines security considerations and controls for the MCP Web Searc
 2. Timeouts on search/fetch/tool execution paths
 3. Maximum content length enforcement
 4. Controlled JSON-RPC error responses
+5. SSRF protection on `fetch_page` (`app/core/url_guard.py`):
+   - scheme allowlist (`http`/`https` only)
+   - hostname resolved before the request; loopback, private, link-local,
+     reserved, multicast, unspecified, and CGNAT addresses are refused
+   - every address a hostname resolves to must be public
+   - each redirect hop is re-validated (redirects are followed manually,
+     bounded by `MAX_REDIRECTS`)
+   - overridable per deployment via `ALLOW_PRIVATE_NETWORK_FETCH`
 
 ## 4. Security Risks to Address Further
 
-1. SSRF risk in unrestricted URL fetching
-2. Missing explicit rate limiting in production path
-3. Broad CORS policy for all origins
+1. Missing explicit rate limiting in production path
+2. Broad CORS policy for all origins
+3. TLS verification disabled in the scraper HTTP client
+4. DNS rebinding: the guard validates the resolved address, but the address
+   used by the eventual connection is resolved separately
 
 ## 5. Recommended Hardening Plan
 
 ### Phase 1 (high priority)
 
-1. Enforce URL scheme allowlist (http/https)
-2. Block localhost and private/internal network targets where possible
-3. Add request rate limiting middleware
+1. Add request rate limiting middleware
+2. Re-enable TLS certificate verification
+3. Pin the validated IP for the connection to close the rebinding window
 
 ### Phase 2 (medium priority)
 

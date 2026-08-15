@@ -4,6 +4,7 @@ from typing import Optional
 import httpx
 from bs4 import BeautifulSoup
 from app.core.config import get_config
+from app.core.url_guard import UnsafeURLError, assert_url_allowed
 
 logger = logging.getLogger(__name__)
 
@@ -11,19 +12,42 @@ logger = logging.getLogger(__name__)
 class ScraperService:
     def __init__(self):
         self.config = get_config()
+        # Redirects are followed manually so every hop can be re-validated;
+        # letting httpx follow them would skip the check on the final target.
         self.client = httpx.AsyncClient(
             timeout=self.config.FETCH_TIMEOUT,
-            follow_redirects=True,
+            follow_redirects=False,
             verify=False,
             headers={
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             },
         )
 
+    async def _get_validated(self, url: str) -> httpx.Response:
+        """Fetch a URL, validating the original target and every redirect hop."""
+        current = url
+
+        for _ in range(self.config.MAX_REDIRECTS + 1):
+            await assert_url_allowed(
+                current, allow_private=self.config.ALLOW_PRIVATE_NETWORK_FETCH
+            )
+            response = await self.client.get(current)
+
+            if not (response.is_redirect and response.has_redirect_location):
+                response.raise_for_status()
+                return response
+
+            location = response.headers["location"]
+            current = str(response.url.join(location))
+
+        raise httpx.TooManyRedirects(
+            f"Exceeded {self.config.MAX_REDIRECTS} redirects fetching {url}",
+            request=httpx.Request("GET", url),
+        )
+
     async def fetch_page(self, url: str) -> dict:
         try:
-            response = await self.client.get(url)
-            response.raise_for_status()
+            response = await self._get_validated(url)
 
             soup = BeautifulSoup(response.text, "html.parser")
 
@@ -34,6 +58,10 @@ class ScraperService:
                 content = content[: self.config.MAX_CONTENT_LENGTH] + "..."
 
             return {"title": title, "content": content, "url": url}
+        except UnsafeURLError:
+            # Policy rejection, not a fetch failure: let it reach the route
+            # layer, which maps ValueError to HTTP 400 / JSON-RPC -32602.
+            raise
         except httpx.TimeoutException:
             logger.warning(f"Timeout fetching {url}")
             return {"title": None, "content": "Request timed out", "url": url}

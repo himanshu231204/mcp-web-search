@@ -22,6 +22,14 @@ class Config:
 
     MAX_CONTENT_LENGTH: int = int(os.getenv("MAX_CONTENT_LENGTH", "5000"))
 
+    MAX_REDIRECTS: int = int(os.getenv("MAX_REDIRECTS", "5"))
+    # Escape hatch for trusted deployments that intentionally scrape an
+    # internal network. Off by default: leaving it off is what stops the
+    # server being used as an SSRF proxy.
+    ALLOW_PRIVATE_NETWORK_FETCH: bool = os.getenv(
+        "ALLOW_PRIVATE_NETWORK_FETCH", "false"
+    ).strip().lower() in ("1", "true", "yes", "on")
+
     CACHE_SIZE: int = int(os.getenv("CACHE_SIZE", "100"))
 
     RATE_LIMIT_PER_MINUTE: int = int(os.getenv("RATE_LIMIT_PER_MINUTE", "20"))
