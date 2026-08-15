@@ -4,14 +4,13 @@ import asyncio
 import ipaddress
 import logging
 import socket
-from typing import List, Union
 from urllib.parse import urlsplit
 
 logger = logging.getLogger(__name__)
 
 ALLOWED_SCHEMES = frozenset({"http", "https"})
 
-IPAddress = Union[ipaddress.IPv4Address, ipaddress.IPv6Address]
+IPAddress = ipaddress.IPv4Address | ipaddress.IPv6Address
 
 # Ranges the stdlib does not flag via is_private but that should never be
 # reachable from a public-facing fetcher.
@@ -60,7 +59,7 @@ def _is_blocked_ip(ip: IPAddress) -> bool:
     return any(ip in network for network in EXTRA_BLOCKED_NETWORKS)
 
 
-def _resolve_host(host: str) -> List[IPAddress]:
+def _resolve_host(host: str) -> list[IPAddress]:
     """Resolve a hostname to every address it maps to.
 
     A literal IP is returned as-is. Every address is checked, so a hostname

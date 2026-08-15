@@ -24,7 +24,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install ruff black mypy
+          # Pinned: unpinned lint tools mean a new release can turn the gate red
+          # with no code change behind it.
+          pip install ruff==0.15.8 black==26.3.1 mypy==1.19.1
       
       - name: Run ruff linter
         run: ruff check app/
